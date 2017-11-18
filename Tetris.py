@@ -167,6 +167,7 @@ def runGame():
     movingLeft = False
     movingRight = False
     score = 0
+    level, fallFreq = calcLevel( score )
 
     curPiece = getPiece()
     nextPiece = getPiece()
@@ -185,7 +186,41 @@ def runGame():
 
         checkForQuit()
 
-    checkForQuit()
+        for event in pygame.event.get():
+            if event.type == KEYUP:
+                # Pause the game
+                if (event.key == K_p):
+                    DISPLAY_SURF.fill(BG_COLOR)
+                    pygame.mixer.music.stop()
+                    showTextScreen("Paused")
+                    pygame.mixer.music.play(-1, 0, 0)
+                    lastFallTime = time.time()
+                    lastMoveDownTime = time.time()
+                    lastMoveSidewaysTime = time.time()
+                elif event.key == K_LEFT:
+                    movingLeft = False
+                elif event.key == K_RIGHT:
+                    movingRight = False
+                elif event.key == K_DOWN:
+                    movingDown = False
+
+        # Draws the current game status
+        DISPLAY_SURF.fill(BG_COLOR)
+        drawGame(game)
+        drawStatus(score, level)
+        drawNextPiece(nextPiece)
+        if curPiece != None:
+            drawPiece(curPiece)
+        pygame.display.update()
+        FPS_CLOCK.tick(FPS)
+
+
+# Determines the level the player is on and how many seconds should pass until a falling piece
+# falls into a space
+def calcLevel( score ):
+    level = int( score / 10 ) + 1
+    fallFreq = 0.27 - (level * 0.02)
+    return level, fallFreq
 
 
 # Returns a random new piece
@@ -224,6 +259,71 @@ def getBlankGame():
     for i in range(GAME_WIDTH):
         game.append([BLANK] * GAME_HEIGHT)
     return game
+
+
+# Draws the current state of the game board
+def drawGame(game):
+    # Draws the board's border
+    pygame.draw.rect(DISPLAY_SURF, BORDER_COLOR,
+                     (X_MARGIN - 3, TOP_MARGIN - 7, (GAME_WIDTH * BOX_SIZE) + 8, (GAME_HEIGHT * BOX_SIZE) * 8), 5)
+
+    # Fills the board's background
+    pygame.draw.rect(DISPLAY_SURF, BG_COLOR, (X_MARGIN, TOP_MARGIN, BOX_SIZE * GAME_WIDTH, BOX_SIZE * GAME_HEIGHT))
+
+    # Draws the boxes on the board
+    for x in range( GAME_WIDTH ):
+        for y in range( GAME_HEIGHT ):
+            drawBox( x, y, game[x][y] )
+
+
+# Draws the specified piece
+def drawPiece( piece, pixelX=None, pixelY=None ):
+    shape = PIECES[piece["shape"]][piece["rotation"]]
+    if pixelX == None and pixelY == None:
+        pixelX, pixelY = convertToPixel( piece["x"], piece["y"] )
+    for x in range( TEMPLATE_WIDTH ):
+        for y in range( TEMPLATE_HEIGHT ):
+            if shape[y][x] != BLANK:
+                drawBox( None, None, piece["color"], pixelX + (x * BOX_SIZE), pixelY + (y * BOX_SIZE) )
+
+
+# Draws the next piece
+def drawNextPiece( piece, pixelX=None, pixelY=None ):
+    nextSurf = BASIC_FONT.render('Next:', True, TEXT_COLOR)
+    nextRect = nextSurf.get_rect()
+    nextRect.topleft = (WINDOW_WIDTH - 120, 80)
+    DISPLAY_SURF.blit(nextSurf, nextRect)
+    drawPiece(piece, pixelX=WINDOW_WIDTH - 120, pixelY=100)
+
+
+# Draws a single box
+def drawBox( x, y, color, pixelX=None, pixelY=None ):
+    if color == BLANK:
+        return
+    if pixelX == None and pixelY == None:
+        pixelX, pixelY = convertToPixel( x, y )
+    pygame.draw.rect( DISPLAY_SURF, COLORS[color], (pixelX + 1, pixelY + 1, BOX_SIZE - 1, BOX_SIZE - 1 ) )
+    pygame.draw.rect( DISPLAY_SURF, L_COLORS[color], (pixelX + 1, pixelY + 1, BOX_SIZE - 4, BOX_SIZE - 4 ) )
+
+
+# Draws the current score and level
+def drawStatus( score, level ):
+    # Draws score
+    scoreSurf = BASIC_FONT.render( "Score: %s" % score, True, TEXT_COLOR )
+    scoreRect = scoreSurf.get_rect()
+    scoreRect.topleft = (WINDOW_WIDTH - 150, 20)
+    DISPLAY_SURF.blit( scoreSurf, scoreRect )
+
+    # Draws level
+    levelSurf = BASIC_FONT.render('Level: %s' % level, True, TEXT_COLOR)
+    levelRect = levelSurf.get_rect()
+    levelRect.topleft = (WINDOW_WIDTH - 150, 50)
+    DISPLAY_SURF.blit(levelSurf, levelRect)
+
+
+# Converts the given xy coordinates of the board to pixel coordinates on the screen
+def convertToPixel( x, y ):
+    return( X_MARGIN + ( x * BOX_SIZE ) ), ( TOP_MARGIN + ( y * BOX_SIZE ) )
 
 
 # Displays the text screen (generic text screen function)
