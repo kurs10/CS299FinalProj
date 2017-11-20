@@ -215,7 +215,7 @@ def runGame():
                     # Will show "Paused" until a key is pressed
                     showTextScreen("Paused")
                     # Once a key is pressed , restart music
-                    pygame.mixer.music.play(-1, 0, 0)
+                    pygame.mixer.music.play(-1, 0.0)
                     # Resest times to current time
                     lastFallTime = time.time()
                     lastMoveDownTime = time.time()
