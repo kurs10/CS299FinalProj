@@ -423,6 +423,7 @@ def drawGame(game):
 
 # Draws the specified piece
 def drawPiece( piece, pixelX=None, pixelY=None ):
+    # Set shapes with piece's shape and rotation 
     shape = PIECES[piece["shape"]][piece["rotation"]]
     # If no pixel coordinates given
     if pixelX == None and pixelY == None:
