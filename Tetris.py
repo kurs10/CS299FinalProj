@@ -18,8 +18,8 @@ TOP_MARGIN = WINDOW_HEIGHT - (GAME_HEIGHT * BOX_SIZE) - 10
 
 # Piece moves one space to the left or right every 0.15s when the left/right arrow key is held
 SIDEWAYS_MOVE_FREQ = 0.15
-# Piece moves one space down every 0.1s when the down arrow key is held
-DOWN_MOVE_FREQ = 0.1
+# Piece moves one space down every 0.5s when the down arrow key is held
+DOWN_MOVE_FREQ = 0.5
 
 # Color setup (RGB) for tetris block and its shadow
 WHITE = (255, 255, 255)
@@ -212,7 +212,7 @@ def runGame():
                     DISPLAY_SURF.fill(BG_COLOR)
                     pygame.mixer.music.stop()
                     # Will show "Paused" until a key is pressed
-                    showTextScreen("Paused")
+                    showTextScreen("Paused",BIG_FONT)
                     # Once a key is pressed , restart music
                     pygame.mixer.music.play(-1, 0.0)
                     # Resest times to current time
@@ -533,35 +533,48 @@ def convertToPixel(x, y):
 def button (text,x,y,w,h,color,hColor,action = None):
     mouse = pygame.mouse.get_pos()
     click = pygame.mouse.get_pressed()
+
+    # If mouse is hovering over button
     if x+w > mouse[0] > x and y+h > mouse[1] > y:
+        #Highlight button
         pygame.draw.rect(DISPLAY_SURF, hColor,(x,y,w,h))
-        
+        # If "button" is clicked
         if click[0] == 1 and action != None:
+            # Call intended action() function
             action()
     else:
         pygame.draw.rect(DISPLAY_SURF,color,(x,y,w,h))
 
+    # Add button text
     smallText = pygame.font.Font("freesansbold.ttf",14)
-    #textSurf = smallText.render(text, True, BLACK)
     textSurf,textRect = makeTextObjs(text,smallText,BLACK)
     textRect.center = ((x+(w/2)), (y+(h/2)))
+    
+    #Display
     DISPLAY_SURF.blit(textSurf, textRect)
 
 # Displays the text screen (generic text screen function)
-def showTextScreen(text):
+def showTextScreen(text,font,pos = None):
+    # Position is in center of screen
+    if pos == "center" or pos == None:
+        y = int(WINDOW_HEIGHT / 2)
+    # Position at top of screen
+    elif pos == "top":
+        y = 50
+
     # Draws the shadow for the text (For looks purposes)
-    titleSurf, titleRect = makeTextObjs(text, BIG_FONT, TEXT_SHADOW_COLOR)
-    titleRect.center = (int(WINDOW_WIDTH / 2), int(WINDOW_HEIGHT / 2))
+    titleSurf, titleRect = makeTextObjs(text, font, TEXT_SHADOW_COLOR)
+    titleRect.center = (int(WINDOW_WIDTH / 2), y)
     DISPLAY_SURF.blit(titleSurf, titleRect)
 
     # Draws the text
-    titleSurf, titleRect = makeTextObjs(text, BIG_FONT, TEXT_COLOR)
-    titleRect.center = (int(WINDOW_WIDTH / 2) - 3, int(WINDOW_HEIGHT / 2) - 3)
+    titleSurf, titleRect = makeTextObjs(text, font, TEXT_COLOR)
+    titleRect.center = (int(WINDOW_WIDTH / 2) - 3, y - 3)
     DISPLAY_SURF.blit(titleSurf, titleRect)    
 
     if text == "Paused":
-        # Draws the "Press a key to play." text
-        pressKeySurf, pressKeyRect = makeTextObjs("Press a key to play.", BASIC_FONT, TEXT_COLOR)
+        # Draws the "Press any key to resume." text
+        pressKeySurf, pressKeyRect = makeTextObjs("Press any key to resume.", BASIC_FONT, TEXT_COLOR)
         pressKeyRect.center = (int(WINDOW_WIDTH / 2), int(WINDOW_HEIGHT / 2) + 100)
         DISPLAY_SURF.blit(pressKeySurf, pressKeyRect)
 
@@ -571,14 +584,6 @@ def showTextScreen(text):
             FPS_CLOCK.tick
 
 
-
-def showInstructions():
-    DISPLAY_SURF.fill(BG_COLOR)
-    textSurf, textRect = makeTextObjs("Instrutions", BIG_FONT, TEXT_SHADOW_COLOR)
-    textRect.center = ((100+(100/2)), (100+(100/2)))
-    DISPLAY_SURF.blit(textSurf, textRect)
-    
-    
 # Creates text objects
 def makeTextObjs(text, font, color):
     surf = font.render(text, True, color)
@@ -614,6 +619,7 @@ def terminate():
     pygame.quit()
     sys.exit()
 
+# Loads music and starts the game
 def start():
      while True:
         pygame.mixer.music.load("tetris.mid")
@@ -622,50 +628,72 @@ def start():
         runGame()
         pygame.mixer.music.stop()
         showTextScreen("Game Over!")
-         
+        
+# Show instructions screen
 def instructions():
         cont = True
+        # Fill in backgrounnd
         DISPLAY_SURF.fill(BG_COLOR)
-        textSurf, textRect = makeTextObjs("Instrutions", BIG_FONT, TEXT_SHADOW_COLOR)
-        textRect.center = ((300), (100+(100/2)))
-        DISPLAY_SURF.blit(textSurf, textRect)
+
+        #Display intructions
+        MED_FONT = pygame.font.Font("freesansbold.ttf", 50)
+        showTextScreen("Instructions",MED_FONT,"top")
         pygame.display.update()
 
+        instr = ["==== CONTROLS =======", "Move Left:   LEFT_ARROW / A", "Move Right:   RIGHT_ARROW / D",
+                 "Move Down:   DOWN_ARROW / S","Rotate:   UP_ARROW / W / Q", "Move Down Shortcut:   SPACE",
+                 "Pause Game: P",
+                 "==== GOAL ===========","The player must rotate and move the falling blocks inside the board.",
+                 "Score points by clearing horizontal lines of blocks.",
+                 "==== CLEAR LINES ====", "To clear a line, fill every square within a single row.",
+                 "==== GAME OVER ======", "Stack the blocks too high and the game is over."
+                 ] 
+        h = 75
+        for x in range(len(instr)):
+            textSurf, textRect = makeTextObjs(instr[x], BASIC_FONT, TEXT_SHADOW_COLOR)
+            #textRect.center = ((320), (h))
+            textRect.move_ip(10,h)
+            h += 25
+            DISPLAY_SURF.blit(textSurf, textRect)
+        pygame.display.update()
+
+        #Keep checking if back button pressed
         while cont:
             for event in pygame.event.get():
-                button("back",275,425,100,30,BLUE,L_BLUE,back)
+                button("back",275,440,100,30,BLUE,L_BLUE,mainMenu)
                 pygame.display.update()
-
-def back():
-    mainMenu()
-
+  
+# Display highscore page
 def highScore():
     cont = True
+    # Fill in backgrounnd
     DISPLAY_SURF.fill(BG_COLOR)
-    textSurf, textRect = makeTextObjs("HighScores", BIG_FONT, TEXT_SHADOW_COLOR)
-    textRect.center = ((300), (50+(100/2)))
-    DISPLAY_SURF.blit(textSurf, textRect)
-    
-    #Get HighScores()
+
+    # Display HighScores
+    MED_FONT = pygame.font.Font("freesansbold.ttf", 50)
+    showTextScreen("High Score",MED_FONT,"top")
+    # Read current highscores from csv file
     hScores = HS.readFromCSV();
     h = 200
     for x in range(len(hScores)):
         text = hScores[x][0] + "  ....  " + str(hScores[x][1])
         textSurf, textRect = makeTextObjs(text, BASIC_FONT, TEXT_SHADOW_COLOR)
-        textRect.center = ((300), (h))
+        textRect.center = ((320), (h))
         h += 25
         DISPLAY_SURF.blit(textSurf, textRect)
-    
     pygame.display.update()
+
+    #Keep checking if back button pressed
     while cont:
         for event in pygame.event.get():
-            button("back",275,425,100,30,BLUE,L_BLUE,back)
+            button("back",275,440,100,30,BLUE,L_BLUE,mainMenu)
             pygame.display.update()
-            
+
+# Displays the main menu screen
 def mainMenu():
     # Displays title
     DISPLAY_SURF.fill(BG_COLOR)
-    showTextScreen("Tetris")
+    showTextScreen("Tetris",BIG_FONT)
     clock = pygame.time.Clock()
     loop = True
 
