@@ -1,4 +1,4 @@
-import sys, pygame, random, time
+import sys, pygame, random, time,HS
 from pygame.locals import *
 
 # Window setup
@@ -573,7 +573,6 @@ def showTextScreen(text):
 
 
 def showInstructions():
-  
     DISPLAY_SURF.fill(BG_COLOR)
     textSurf, textRect = makeTextObjs("Instrutions", BIG_FONT, TEXT_SHADOW_COLOR)
     textRect.center = ((100+(100/2)), (100+(100/2)))
@@ -632,7 +631,6 @@ def instructions():
         DISPLAY_SURF.blit(textSurf, textRect)
         pygame.display.update()
 
-        
         while cont:
             for event in pygame.event.get():
                 button("back",275,425,100,30,BLUE,L_BLUE,back)
@@ -645,13 +643,25 @@ def highScore():
     cont = True
     DISPLAY_SURF.fill(BG_COLOR)
     textSurf, textRect = makeTextObjs("HighScores", BIG_FONT, TEXT_SHADOW_COLOR)
-    textRect.center = ((300), (100+(100/2)))
+    textRect.center = ((300), (50+(100/2)))
     DISPLAY_SURF.blit(textSurf, textRect)
+    
+    #Get HighScores()
+    hScores = HS.readFromCSV();
+    h = 200
+    for x in range(len(hScores)):
+        text = hScores[x][0] + "  ....  " + str(hScores[x][1])
+        textSurf, textRect = makeTextObjs(text, BASIC_FONT, TEXT_SHADOW_COLOR)
+        textRect.center = ((300), (h))
+        h += 25
+        DISPLAY_SURF.blit(textSurf, textRect)
+    
     pygame.display.update()
     while cont:
         for event in pygame.event.get():
             button("back",275,425,100,30,BLUE,L_BLUE,back)
             pygame.display.update()
+            
 def mainMenu():
     # Displays title
     DISPLAY_SURF.fill(BG_COLOR)
