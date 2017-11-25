@@ -3,18 +3,18 @@ from pygame.locals import *
 
 # Window setup
 FPS = 25
-WINDOW_WIDTH = 640      # Window 640 pixels wide
-WINDOW_HEIGHT = 480     # Winow 480 pixels high
-BOX_SIZE = 20           # 20x20 pixels
-GAME_WIDTH = 10         # Game board is 10 boxes wide
-GAME_HEIGHT = 20        # Game board is 20 boxes tall
+WINDOW_WIDTH = 640  # Window 640 pixels wide
+WINDOW_HEIGHT = 480  # Winow 480 pixels high
+BOX_SIZE = 20  # 20x20 pixels
+GAME_WIDTH = 10  # Game board is 10 boxes wide
+GAME_HEIGHT = 20  # Game board is 20 boxes tall
 
 # Margins between the game and window edge
-    # Margin from window leftright = (Total Window width - Game Width)/2
+# Margin from window leftright = (Total Window width - Game Width)/2
 X_MARGIN = int((WINDOW_WIDTH - GAME_WIDTH * BOX_SIZE) / 2)
-    # Margin from top = (Total window height - Game Height) - 10
-    # 10 is the distance from board to bottom
-    # NEED TO FIX BECUASE NO MARGIN ON BOTTOM
+# Margin from top = (Total window height - Game Height) - 10
+# 10 is the distance from board to bottom
+# NEED TO FIX BECUASE NO MARGIN ON BOTTOM
 TOP_MARGIN = WINDOW_HEIGHT - (GAME_HEIGHT * BOX_SIZE) - 10
 
 # Piece moves one space to the left or right every 0.15s when the left/right arrow key is held
@@ -22,31 +22,35 @@ SIDEWAYS_MOVE_FREQ = 0.15
 # Piece moves one space down every 0.1s when the down arrow key is held
 DOWN_MOVE_FREQ = 0.1
 
-# Color setup (RGB)
+# Color setup (RGB) for tetris block and its shadow
 WHITE = (255, 255, 255)
 GRAY = (185, 185, 185)
 BLACK = (0, 0, 0)
-RED = (155, 0, 0)
-L_RED = (175, 20, 20)
-GREEN = (0, 155, 0)  # should be light green
-L_GREEN = (20, 175, 20)
-BLUE = (0, 0, 155)
-L_BLUE = (20, 20, 175)
-YELLOW = (155, 155, 0)
-L_YELLOW = (175, 175, 20)
+RED = (216, 0, 0)
+L_RED = (240, 0, 0)
+GREEN = (0, 216, 0)
+L_GREEN = (0, 240, 0)
+BLUE = (0, 0, 216)
+L_BLUE = (0, 0, 240)
+YELLOW = (216, 216, 0)
+L_YELLOW = (240, 240, 0)
+CYAN = (0, 216, 216)
+L_CYAN = (0, 240, 240)
+ORANGE = (216, 144, 0)
+L_ORANGE = (240, 160, 51)
+PURPLE = (144, 0, 216)
+L_PURPLE = (160, 0, 240)
 
-# light blue (cyan)
-# orange
-# purple
-
+# Assigns piece colors to an index
+PIECE_COLOR = {"S": 0, "Z": 1, "J": 2, "L": 3, "I": 4, "O": 5, "T": 6}
 # Block Colors
-COLORS = (BLUE, GREEN, RED, YELLOW)
+COLORS = (GREEN, RED, BLUE, ORANGE, CYAN, YELLOW, PURPLE)
 # Block Colors HighLight
-L_COLORS = (L_BLUE, L_GREEN, L_RED, L_YELLOW)
+L_COLORS = (L_GREEN, L_RED, L_BLUE, L_ORANGE, L_CYAN, L_YELLOW, L_PURPLE)
 
 # If false, raise an assertionError Exception
 # Make sure each color has an equal ligher color
-assert len(COLORS) == len(L_COLORS),"Not all colors have a lighter equal"
+assert len(COLORS) == len(L_COLORS), "Not all colors have a lighter equal"
 
 # Assigning colors to the game
 BORDER_COLOR = BLUE
@@ -58,9 +62,8 @@ TEXT_SHADOW_COLOR = GRAY
 # Each template contains the normal and all rotated positions
 # These templates are stored into a dictionary
 BLANK = "."
-TEMPLATE_WIDTH = 5      #Templates will be 5x5 the area of shape rotation
+TEMPLATE_WIDTH = 5  # Templates will be 5x5 the area of shape rotation
 TEMPLATE_HEIGHT = 5
-
 
 S_PIECE = [[".....",
             ".....",
@@ -181,7 +184,7 @@ def runGame():
     score = 0
     # Calcuates the level and fall frequency based on score
     # Level increase and Fall Frequency increase the higher the score
-    level, FALL_FREQ = calcLevel( score )
+    level, FALL_FREQ = calcLevel(score)
 
     curPiece = getPiece()
     nextPiece = getPiece()
@@ -210,24 +213,24 @@ def runGame():
                     DISPLAY_SURF.fill(BG_COLOR)
                     pygame.mixer.music.stop()
                     # Will show "Paused" until a key is pressed
-                    showTextScreen("Paused") 
+                    showTextScreen("Paused")
                     # Once a key is pressed , restart music
-                    pygame.mixer.music.play(-1, 0, 0)
+                    pygame.mixer.music.play(-1, 0.0)
                     # Resest times to current time
                     lastFallTime = time.time()
                     lastMoveDownTime = time.time()
                     lastMoveSidewaysTime = time.time()
                 # If left arrow key released
                 elif event.key == K_LEFT:
-                    movingLeft = False      #No longer rotating
+                    movingLeft = False  # No longer rotating
                 # If left arrow key released
                 elif event.key == K_RIGHT:
-                    movingRight = False     #No longer rotating
+                    movingRight = False  # No longer rotating
                 # If down arrow key released
                 elif event.key == K_DOWN:
-                    movingDown = False      #No longer moving doww
-            
-            #=====Code dealing with moving piecies=====START
+                    movingDown = False  # No longer moving doww
+
+            # =====Code dealing with moving piecies=====START
             # Else if a key is pressed
             elif event.type == KEYDOWN:
                 # MOVE LEFT
@@ -253,7 +256,7 @@ def runGame():
                     movingDown = True
                     # If new position is a valid position
                     if isValidPosition(game, curPiece, adjY=1):
-                        #Update y position by 1 down
+                        # Update y position by 1 down
                         curPiece['y'] += 1
                     lastMoveDownTime = time.time()
 
@@ -290,7 +293,7 @@ def runGame():
                     if not isValidPosition(game, curPiece):
                         # Revert rotation to previous
                         curPiece['rotation'] = (curPiece['rotation'] + 1) % len(PIECES[curPiece['shape']])
-                                               
+
         # HOLDING DOWN RIGHT OR LEFT ARROW KEY                
         # If moving left or right true
         # AND time elapsed since piece last moved sideways is greater than the sideways move frequecy
@@ -303,7 +306,7 @@ def runGame():
             elif movingRight and isValidPosition(game, curPiece, adjX=1):
                 # Update x position by -1
                 curPiece['x'] += 1
-            #Update last move sidways time to current time
+            # Update last move sidways time to current time
             lastMoveSidewaysTime = time.time()
 
         # If piece is moving down
@@ -333,11 +336,10 @@ def runGame():
             else:
                 # Move piece one row down
                 curPiece['y'] += 1
-                #Update last fall time
+                # Update last fall time
                 lastFallTime = time.time()
 
-
-        #=====Code dealing with moving piecies=====END
+        # =====Code dealing with moving piecies=====END
 
         # Draws the current game status
         DISPLAY_SURF.fill(BG_COLOR)
@@ -353,9 +355,9 @@ def runGame():
 
 # Determines the level the player is on and how many seconds should pass until current piece
 # falls into a space
-def calcLevel( score ):
+def calcLevel(score):
     # Level increases every 10 points/lines cleared, starts at level 1
-    level = int( score / 10 ) + 1
+    level = int(score / 10) + 1
     # Blocks fall faster by 0.02 secs as level increases (but max speed reached at level 13)
     if (level > 13):
         FALL_FREQ = 0.27 - (13 * 0.02)
@@ -371,7 +373,7 @@ def getPiece():
                 "rotation": random.randint(0, len(PIECES[shape]) - 1),
                 "x": int(GAME_WIDTH / 2) - int(TEMPLATE_WIDTH / 2),
                 "y": -2,
-                "color": random.randint(0, len(COLORS) - 1)}  # need to assign colors somehow
+                "color": PIECE_COLOR[shape]}
     return newPiece
 
 
@@ -416,9 +418,9 @@ def drawGame(game):
     pygame.draw.rect(DISPLAY_SURF, BG_COLOR, (X_MARGIN, TOP_MARGIN, BOX_SIZE * GAME_WIDTH, BOX_SIZE * GAME_HEIGHT))
 
     # Draws the boxes on the board
-    for x in range( GAME_WIDTH ):
-        for y in range( GAME_HEIGHT ):
-            drawBox( x, y, game[x][y] )
+    for x in range(GAME_WIDTH):
+        for y in range(GAME_HEIGHT):
+            drawBox(x, y, game[x][y])
 
 
 # Draws the specified piece
@@ -428,15 +430,15 @@ def drawPiece( piece, pixelX=None, pixelY=None ):
     # If no pixel coordinates given
     if pixelX == None and pixelY == None:
         # Convert board coordiates to pixel coordinates
-        pixelX, pixelY = convertToPixel( piece["x"], piece["y"] )
-    for x in range( TEMPLATE_WIDTH ):
-        for y in range( TEMPLATE_HEIGHT ):
+        pixelX, pixelY = convertToPixel(piece["x"], piece["y"])
+    for x in range(TEMPLATE_WIDTH):
+        for y in range(TEMPLATE_HEIGHT):
             if shape[y][x] != BLANK:
-                drawBox( None, None, piece["color"], pixelX + (x * BOX_SIZE), pixelY + (y * BOX_SIZE) )
+                drawBox(None, None, piece["color"], pixelX + (x * BOX_SIZE), pixelY + (y * BOX_SIZE))
 
 
 # Draws the next piece
-def drawNextPiece( piece, pixelX=None, pixelY=None ):
+def drawNextPiece(piece, pixelX=None, pixelY=None):
     # Displays "Next:" on screen
     nextSurf = BASIC_FONT.render('Next:', True, TEXT_COLOR)
     nextRect = nextSurf.get_rect()
@@ -447,33 +449,33 @@ def drawNextPiece( piece, pixelX=None, pixelY=None ):
 
 
 # Draws a single box given x,y board coordinated or x,y pixel coordinates
-def drawBox( x, y, color, pixelX=None, pixelY=None ):
+def drawBox(x, y, color, pixelX=None, pixelY=None):
     # If no color given, exit function
     if color == BLANK:
         return
     # If no pixel coordinates given
     if pixelX == None and pixelY == None:
         # Convert booard coordinates to pixel coordinates
-        pixelX, pixelY = convertToPixel( x, y )
+        pixelX, pixelY = convertToPixel(x, y)
     # Draw box with darker color first 
-    pygame.draw.rect( DISPLAY_SURF, COLORS[color], (pixelX + 1, pixelY + 1, BOX_SIZE - 1, BOX_SIZE - 1 ) )
+    pygame.draw.rect(DISPLAY_SURF, COLORS[color], (pixelX + 1, pixelY + 1, BOX_SIZE - 1, BOX_SIZE - 1))
     # Draw box with lighter color (for shading)
-    pygame.draw.rect( DISPLAY_SURF, L_COLORS[color], (pixelX + 1, pixelY + 1, BOX_SIZE - 4, BOX_SIZE - 4 ) )
+    pygame.draw.rect(DISPLAY_SURF, L_COLORS[color], (pixelX + 1, pixelY + 1, BOX_SIZE - 4, BOX_SIZE - 4))
 
 
 # Draws the current score and level
-def drawStatus( score, level ):
+def drawStatus(score, level):
     # Draws score
-    scoreSurf = BASIC_FONT.render( "Score: %s" % score, True, TEXT_COLOR )
+    scoreSurf = BASIC_FONT.render("Score: %s" % score, True, TEXT_COLOR)
     scoreRect = scoreSurf.get_rect()
     scoreRect.topleft = (WINDOW_WIDTH - 150, 20)
-    DISPLAY_SURF.blit( scoreSurf, scoreRect )   #Draws scoreSurf at given rectangle on display
+    DISPLAY_SURF.blit(scoreSurf, scoreRect)  # Draws scoreSurf at given rectangle on display
 
     # Draws level
     levelSurf = BASIC_FONT.render('Level: %s' % level, True, TEXT_COLOR)
     levelRect = levelSurf.get_rect()
     levelRect.topleft = (WINDOW_WIDTH - 150, 50)
-    DISPLAY_SURF.blit(levelSurf, levelRect) #Draws levelSurf at given rectangle on display
+    DISPLAY_SURF.blit(levelSurf, levelRect)  # Draws levelSurf at given rectangle on display
 
 
 # Adds piece permanelty to board once piece has landed
@@ -501,7 +503,7 @@ def isRowFull(game, y):
 # Deletes all full rows on board and shifts rows down 
 def deleteFullRows(game):
     rowsDel = 0
-    #Start at bottom row
+    # Start at bottom row
     y = GAME_HEIGHT - 1
     while y >= 0:
         # If row y is full
@@ -511,7 +513,7 @@ def deleteFullRows(game):
             for pullDownY in range(y, 0, -1):
                 for x in range(GAME_WIDTH):
                     # Set row as row above it
-                    game[x][pullDownY] = game[x][pullDownY-1]
+                    game[x][pullDownY] = game[x][pullDownY - 1]
             # Set very top row as blank.
             for x in range(GAME_WIDTH):
                 game[x][0] = BLANK
@@ -525,8 +527,8 @@ def deleteFullRows(game):
 
 
 # Converts the given xy coordinates of the board to pixel coordinates on the screen
-def convertToPixel( x, y ):
-    return( X_MARGIN + ( x * BOX_SIZE ) ), ( TOP_MARGIN + ( y * BOX_SIZE ) )
+def convertToPixel(x, y):
+    return (X_MARGIN + (x * BOX_SIZE)), (TOP_MARGIN + (y * BOX_SIZE))
 
 
 # Displays the text screen (generic text screen function)
@@ -600,12 +602,12 @@ def main():
     # Creates a new Font Object from a file
     BASIC_FONT = pygame.font.Font("freesansbold.ttf", 18)
     BIG_FONT = pygame.font.Font("freesansbold.ttf", 100)
-    #Sets the window title/name as "Tetris!"
+    # Sets the window title/name as "Tetris!"
     pygame.display.set_caption("Tetris!")
 
     # Displays title
     showTextScreen("Tetris!")
-    
+
     while True:
         pygame.mixer.music.load("tetris.mid")
         # Loop music indefinitely (-1)
