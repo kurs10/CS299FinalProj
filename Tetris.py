@@ -528,21 +528,23 @@ def deleteFullRows(game):
 # Converts the given xy coordinates of the board to pixel coordinates on the screen
 def convertToPixel(x, y):
     return (X_MARGIN + (x * BOX_SIZE)), (TOP_MARGIN + (y * BOX_SIZE))
+
 # Generic Button Create Function
 def button (text,x,y,w,h,color,hColor,action = None):
     mouse = pygame.mouse.get_pos()
     click = pygame.mouse.get_pressed()
     if x+w > mouse[0] > x and y+h > mouse[1] > y:
         pygame.draw.rect(DISPLAY_SURF, hColor,(x,y,w,h))
+        
         if click[0] == 1 and action != None:
             action()
     else:
         pygame.draw.rect(DISPLAY_SURF,color,(x,y,w,h))
 
     smallText = pygame.font.Font("freesansbold.ttf",14)
-    textSurf = smallText.render(text, True, BLACK)
-    textRect = textSurf.get_rect()
-    textRect.center = ( (x+(w/2)), (y+(h/2)) )
+    #textSurf = smallText.render(text, True, BLACK)
+    textSurf,textRect = makeTextObjs(text,smallText,BLACK)
+    textRect.center = ((x+(w/2)), (y+(h/2)))
     DISPLAY_SURF.blit(textSurf, textRect)
 
 # Displays the text screen (generic text screen function)
@@ -556,37 +558,32 @@ def showTextScreen(text):
     titleSurf, titleRect = makeTextObjs(text, BIG_FONT, TEXT_COLOR)
     titleRect.center = (int(WINDOW_WIDTH / 2) - 3, int(WINDOW_HEIGHT / 2) - 3)
     DISPLAY_SURF.blit(titleSurf, titleRect)    
-    
-    # Draws the "Press a key to play." text
-    pressKeySurf, pressKeyRect = makeTextObjs("Press a key to play.", BASIC_FONT, TEXT_COLOR)
-    pressKeyRect.center = (int(WINDOW_WIDTH / 2), int(WINDOW_HEIGHT / 2) + 100)
-    DISPLAY_SURF.blit(pressKeySurf, pressKeyRect)
 
-    # Get mouse position
-    clock = pygame.time.Clock()
-    loop = True
+    if text == "Paused":
+        # Draws the "Press a key to play." text
+        pressKeySurf, pressKeyRect = makeTextObjs("Press a key to play.", BASIC_FONT, TEXT_COLOR)
+        pressKeyRect.center = (int(WINDOW_WIDTH / 2), int(WINDOW_HEIGHT / 2) + 100)
+        DISPLAY_SURF.blit(pressKeySurf, pressKeyRect)
 
-    while loop:
-        for event in pygame.event.get():
-           
-            button("Start",100,375,100,30,GREEN,L_GREEN,runGame)
-            button("Instructions",275,375,100,30,BLUE,L_BLUE)
-            button("High Score",450,375,100,30,RED, L_RED)
-         
+        # Once a key is pressed, stop displaying text
+        while checkForKeyPress() == None:
             pygame.display.update()
-            clock.tick(15)
-    '''
-    # Once a key is pressed, stop displaying text
-    while checkForKeyPress() == None:
-        pygame.display.update()
-        FPS_CLOCK.tick
-'''
+            FPS_CLOCK.tick
 
+
+
+def showInstructions():
+  
+    DISPLAY_SURF.fill(BG_COLOR)
+    textSurf, textRect = makeTextObjs("Instrutions", BIG_FONT, TEXT_SHADOW_COLOR)
+    textRect.center = ((100+(100/2)), (100+(100/2)))
+    DISPLAY_SURF.blit(textSurf, textRect)
+    
+    
 # Creates text objects
 def makeTextObjs(text, font, color):
     surf = font.render(text, True, color)
     return surf, surf.get_rect()
-
 
 # Checks if a key is pressed
 def checkForKeyPress():
@@ -618,7 +615,58 @@ def terminate():
     pygame.quit()
     sys.exit()
 
+def start():
+     while True:
+        pygame.mixer.music.load("tetris.mid")
+        # Loop music indefinitely (-1)
+        pygame.mixer.music.play(-1, 0.0)
+        runGame()
+        pygame.mixer.music.stop()
+        showTextScreen("Game Over!")
+         
+def instructions():
+        cont = True
+        DISPLAY_SURF.fill(BG_COLOR)
+        textSurf, textRect = makeTextObjs("Instrutions", BIG_FONT, TEXT_SHADOW_COLOR)
+        textRect.center = ((300), (100+(100/2)))
+        DISPLAY_SURF.blit(textSurf, textRect)
+        pygame.display.update()
 
+        
+        while cont:
+            for event in pygame.event.get():
+                button("back",275,425,100,30,BLUE,L_BLUE,back)
+                pygame.display.update()
+
+def back():
+    mainMenu()
+
+def highScore():
+    cont = True
+    DISPLAY_SURF.fill(BG_COLOR)
+    textSurf, textRect = makeTextObjs("HighScores", BIG_FONT, TEXT_SHADOW_COLOR)
+    textRect.center = ((300), (100+(100/2)))
+    DISPLAY_SURF.blit(textSurf, textRect)
+    pygame.display.update()
+    while cont:
+        for event in pygame.event.get():
+            button("back",275,425,100,30,BLUE,L_BLUE,back)
+            pygame.display.update()
+def mainMenu():
+    # Displays title
+    DISPLAY_SURF.fill(BG_COLOR)
+    showTextScreen("Tetris")
+    clock = pygame.time.Clock()
+    loop = True
+
+    while loop:
+        for event in pygame.event.get():
+            button("Start",100,375,100,30,GREEN,L_GREEN,start)
+            button("Instructions",275,375,100,30,BLUE,L_BLUE,instructions)
+            button("High Score",450,375,100,30,RED, L_RED,highScore)
+            pygame.display.update()
+            clock.tick(15)
+            
 # main method
 def main():
     global FPS_CLOCK, DISPLAY_SURF, BASIC_FONT, BIG_FONT
@@ -633,16 +681,7 @@ def main():
     # Sets the window title/name as "Tetris!"
     pygame.display.set_caption("Tetris!")
 
-    # Displays title
-    showTextScreen("Tetris!")
-
-    while True:
-        pygame.mixer.music.load("tetris.mid")
-        # Loop music indefinitely (-1)
-        pygame.mixer.music.play(-1, 0.0)
-        runGame()
-        pygame.mixer.music.stop()
-        showTextScreen("Game Over!")
+    mainMenu()
 
 
 if __name__ == "__main__":
