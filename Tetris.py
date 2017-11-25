@@ -14,7 +14,6 @@ GAME_HEIGHT = 20  # Game board is 20 boxes tall
 X_MARGIN = int((WINDOW_WIDTH - GAME_WIDTH * BOX_SIZE) / 2)
 # Margin from top = (Total window height - Game Height) - 10
 # 10 is the distance from board to bottom
-# NEED TO FIX BECUASE NO MARGIN ON BOTTOM
 TOP_MARGIN = WINDOW_HEIGHT - (GAME_HEIGHT * BOX_SIZE) - 10
 
 # Piece moves one space to the left or right every 0.15s when the left/right arrow key is held
@@ -425,7 +424,7 @@ def drawGame(game):
 
 # Draws the specified piece
 def drawPiece( piece, pixelX=None, pixelY=None ):
-    # Set shapes with piece's shape and rotation 
+    # Set shapes with piece's shape and rotation
     shape = PIECES[piece["shape"]][piece["rotation"]]
     # If no pixel coordinates given
     if pixelX == None and pixelY == None:
@@ -529,7 +528,22 @@ def deleteFullRows(game):
 # Converts the given xy coordinates of the board to pixel coordinates on the screen
 def convertToPixel(x, y):
     return (X_MARGIN + (x * BOX_SIZE)), (TOP_MARGIN + (y * BOX_SIZE))
+# Generic Button Create Function
+def button (text,x,y,w,h,color,hColor,action = None):
+    mouse = pygame.mouse.get_pos()
+    click = pygame.mouse.get_pressed()
+    if x+w > mouse[0] > x and y+h > mouse[1] > y:
+        pygame.draw.rect(DISPLAY_SURF, hColor,(x,y,w,h))
+        if click[0] == 1 and action != None:
+            action()
+    else:
+        pygame.draw.rect(DISPLAY_SURF,color,(x,y,w,h))
 
+    smallText = pygame.font.Font("freesansbold.ttf",14)
+    textSurf = smallText.render(text, True, BLACK)
+    textRect = textSurf.get_rect()
+    textRect.center = ( (x+(w/2)), (y+(h/2)) )
+    DISPLAY_SURF.blit(textSurf, textRect)
 
 # Displays the text screen (generic text screen function)
 def showTextScreen(text):
@@ -541,18 +555,32 @@ def showTextScreen(text):
     # Draws the text
     titleSurf, titleRect = makeTextObjs(text, BIG_FONT, TEXT_COLOR)
     titleRect.center = (int(WINDOW_WIDTH / 2) - 3, int(WINDOW_HEIGHT / 2) - 3)
-    DISPLAY_SURF.blit(titleSurf, titleRect)
-
+    DISPLAY_SURF.blit(titleSurf, titleRect)    
+    
     # Draws the "Press a key to play." text
     pressKeySurf, pressKeyRect = makeTextObjs("Press a key to play.", BASIC_FONT, TEXT_COLOR)
     pressKeyRect.center = (int(WINDOW_WIDTH / 2), int(WINDOW_HEIGHT / 2) + 100)
     DISPLAY_SURF.blit(pressKeySurf, pressKeyRect)
 
+    # Get mouse position
+    clock = pygame.time.Clock()
+    loop = True
+
+    while loop:
+        for event in pygame.event.get():
+           
+            button("Start",100,375,100,30,GREEN,L_GREEN,runGame)
+            button("Instructions",275,375,100,30,BLUE,L_BLUE)
+            button("High Score",450,375,100,30,RED, L_RED)
+         
+            pygame.display.update()
+            clock.tick(15)
+    '''
     # Once a key is pressed, stop displaying text
     while checkForKeyPress() == None:
         pygame.display.update()
         FPS_CLOCK.tick
-
+'''
 
 # Creates text objects
 def makeTextObjs(text, font, color):
