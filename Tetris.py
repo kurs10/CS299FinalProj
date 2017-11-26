@@ -4,7 +4,7 @@ from pygame.locals import *
 # Window setup
 FPS = 25
 WINDOW_WIDTH = 640  # Window 640 pixels wide
-WINDOW_HEIGHT = 480  # Winow 480 pixels high
+WINDOW_HEIGHT = 480  # Window 480 pixels high
 BOX_SIZE = 20  # 20x20 pixels
 GAME_WIDTH = 10  # Game board is 10 boxes wide
 GAME_HEIGHT = 20  # Game board is 20 boxes tall
@@ -229,22 +229,22 @@ def runGame():
                     movingRight = False  # No longer rotating
                 # If down arrow key released
                 elif event.key == K_DOWN:
-                    movingDown = False  # No longer moving doww
+                    movingDown = False  # No longer moving down
 
-            # =====Code dealing with moving piecies=====START
+            # =====Code dealing with moving pieces=====START
             # Else if a key is pressed
             elif event.type == KEYDOWN:
                 # MOVE LEFT
-                # If left arrow key or a is pressed and new positin is a valid position
-                if (event.key == K_LEFT or event.key == K_a) and isValidPosition(game, curPiece, adjX=-1):
+                # If left arrow key is pressed and new positin is a valid position
+                if (event.key == K_LEFT) and isValidPosition(game, curPiece, adjX=-1):
                     # Update x position by 1 to the left
                     curPiece['x'] -= 1
                     movingLeft = True
                     movingRight = False
                     lastMoveSidewaysTime = time.time()
                 # MOVE RIGHT
-                # If right arrow key or d is pressed and new positin is a valid position
-                elif (event.key == K_RIGHT or event.key == K_d) and isValidPosition(game, curPiece, adjX=1):
+                # If right arrow key is pressed and new positin is a valid position
+                elif (event.key == K_RIGHT) and isValidPosition(game, curPiece, adjX=1):
                     # Update x position by 1 to the right
                     curPiece['x'] += 1
                     movingRight = True
@@ -252,8 +252,8 @@ def runGame():
                     lastMoveSidewaysTime = time.time()
 
                 # TO MOVE DOWN
-                # If down arrow key or s is pressed 
-                elif (event.key == K_DOWN or event.key == K_s):
+                # If down arrow key is pressed
+                elif (event.key == K_DOWN):
                     movingDown = True
                     # If new position is a valid position
                     if isValidPosition(game, curPiece, adjY=1):
@@ -276,8 +276,8 @@ def runGame():
                     curPiece['y'] += i - 1
 
                 # ROTATE CLOCKWISE
-                # If up arrow key or w is pressed 
-                elif (event.key == K_UP or event.key == K_w):
+                # If up arrow key is pressed
+                elif (event.key == K_UP):
                     # Update rotation key value by +1
                     curPiece['rotation'] = (curPiece['rotation'] + 1) % len(PIECES[curPiece['shape']])
                     # If rotation value is larger than num of rotations, roll over and set rotation value to 0
@@ -285,17 +285,7 @@ def runGame():
                         # Revert rotation to previous
                         curPiece['rotation'] = (curPiece['rotation'] - 1) % len(PIECES[curPiece['shape']])
 
-                # ROTATE COUNTERCLOCKWISE
-                # If q key is pressed
-                elif (event.key == K_q):
-                    # Update rotation key value by -1    
-                    curPiece['rotation'] = (curPiece['rotation'] - 1) % len(PIECES[curPiece['shape']])
-                    # If new rotation of piece is not a valid position
-                    if not isValidPosition(game, curPiece):
-                        # Revert rotation to previous
-                        curPiece['rotation'] = (curPiece['rotation'] + 1) % len(PIECES[curPiece['shape']])
-
-        # HOLDING DOWN RIGHT OR LEFT ARROW KEY                
+        # HOLDING DOWN RIGHT OR LEFT ARROW KEY
         # If moving left or right true
         # AND time elapsed since piece last moved sideways is greater than the sideways move frequecy
         if (movingLeft or movingRight) and time.time() - lastMoveSidewaysTime > SIDEWAYS_MOVE_FREQ:
@@ -670,9 +660,9 @@ def instructions():
         showTextScreen("Instructions",MED_FONT,"top")
         pygame.display.update()
 
-        instr = ["==== CONTROLS =======", "Move Left:   LEFT_ARROW / A", "Move Right:   RIGHT_ARROW / D",
-                 "Move Down:   DOWN_ARROW / S","Rotate:   UP_ARROW / W / Q", "Move Down Shortcut:   SPACE",
-                 "Pause Game: P",
+        instr = ["==== CONTROLS =======", "Move Left:   LEFT_ARROW", "Move Right:   RIGHT_ARROW",
+                 "Move Down:   DOWN_ARROW","Rotate:   UP_ARROW", "Move Down Shortcut:   SPACE",
+                 "Pause Game:   P",
                  "==== GOAL ===========","The player must rotate and move the falling blocks inside the board.",
                  "Score points by clearing horizontal lines of blocks.",
                  "==== CLEAR LINES ====", "To clear a line, fill every square within a single row.",
