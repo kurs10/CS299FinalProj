@@ -8,7 +8,8 @@ WINDOW_HEIGHT = 480  # Winow 480 pixels high
 BOX_SIZE = 20  # 20x20 pixels
 GAME_WIDTH = 10  # Game board is 10 boxes wide
 GAME_HEIGHT = 20  # Game board is 20 boxes tall
-
+SCORE = 0
+H_SCORES = HS.readFromCSV()
 # Margins between the game and window edge
 # Margin from window leftright = (Total Window width - Game Width)/2
 X_MARGIN = int((WINDOW_WIDTH - GAME_WIDTH * BOX_SIZE) / 2)
@@ -180,10 +181,10 @@ def runGame():
     movingDown = False
     movingLeft = False
     movingRight = False
-    score = 0
+    global SCORE
     # Calcuates the level and fall frequency based on score
     # Level increase and Fall Frequency increase the higher the score
-    level, FALL_FREQ = calcLevel(score)
+    level, FALL_FREQ = calcLevel(SCORE)
 
     curPiece = getPiece()
     nextPiece = getPiece()
@@ -201,6 +202,7 @@ def runGame():
                 return
 
         checkForQuit()
+        
         # Event handling (Pause Game,Rotate Piece, Move Piece Down)
         for event in pygame.event.get():
             # If key is released
@@ -326,9 +328,9 @@ def runGame():
                 # Add piece to gameboard
                 addToBoard(game, curPiece)
                 # Check if there are any full rows and delete them and update score
-                score += deleteFullRows(game)
-                # Update level and fall frequency based on score
-                level, FALL_FREQ = calcLevel(score)
+                SCORE += deleteFullRows(game)
+                # Update level and fall frequency based on Score
+                level, FALL_FREQ = calcLevel(SCORE)
                 # No more current piece
                 curPiece = None
             # Else if piece is still falling
@@ -343,14 +345,14 @@ def runGame():
         # Draws the current game status
         DISPLAY_SURF.fill(BG_COLOR)
         drawGame(game)
-        drawStatus(score, level)
+        drawStatus(SCORE, level)
         drawNextPiece(nextPiece)
         if curPiece != None:
             drawPiece(curPiece)
         # Updates entire screen
         pygame.display.update()
         FPS_CLOCK.tick(FPS)
-
+ 
 
 # Determines the level the player is on and how many seconds should pass until current piece
 # falls into a space
@@ -529,8 +531,10 @@ def deleteFullRows(game):
 def convertToPixel(x, y):
     return (X_MARGIN + (x * BOX_SIZE)), (TOP_MARGIN + (y * BOX_SIZE))
 
+
 # Generic Button Create Function
 def button (text,x,y,w,h,color,hColor,action = None):
+    cont = True;
     mouse = pygame.mouse.get_pos()
     click = pygame.mouse.get_pressed()
 
@@ -541,6 +545,7 @@ def button (text,x,y,w,h,color,hColor,action = None):
         # If "button" is clicked
         if click[0] == 1 and action != None:
             # Call intended action() function
+            cont = False;
             action()
     else:
         pygame.draw.rect(DISPLAY_SURF,color,(x,y,w,h))
@@ -552,6 +557,8 @@ def button (text,x,y,w,h,color,hColor,action = None):
     
     #Display
     DISPLAY_SURF.blit(textSurf, textRect)
+    return cont
+
 
 # Displays the text screen (generic text screen function)
 def showTextScreen(text,font,pos = None):
@@ -589,6 +596,7 @@ def makeTextObjs(text, font, color):
     surf = font.render(text, True, color)
     return surf, surf.get_rect()
 
+
 # Checks if a key is pressed
 def checkForKeyPress():
     checkForQuit()
@@ -619,15 +627,37 @@ def terminate():
     pygame.quit()
     sys.exit()
 
-# Loads music and starts the game
+# Starts Game loop
 def start():
-     while True:
-        pygame.mixer.music.load("tetris.mid")
-        # Loop music indefinitely (-1)
-        pygame.mixer.music.play(-1, 0.0)
-        runGame()
-        pygame.mixer.music.stop()
-        showTextScreen("Game Over!")
+    global H_SCORES
+    cont = True
+    pygame.mixer.music.load("tetris.mid")
+    # Loop music indefinitely (-1)
+    pygame.mixer.music.play(-1, 0.0)
+    runGame()
+    pygame.mixer.music.stop()
+    
+    # Display game over
+    DISPLAY_SURF.fill(BG_COLOR)
+    showTextScreen("Game Over!",BIG_FONT)
+    # Display socre
+    text = "Score:" + str(SCORE)
+    MED_FONT = pygame.font.Font("freesansbold.ttf", 50)
+    textSurf, textRect = makeTextObjs(text, MED_FONT, TEXT_SHADOW_COLOR)
+    textRect.center = ((320), (350))
+    DISPLAY_SURF.blit(textSurf, textRect)
+    
+    #Updates Highscore list
+    H_SCORES = HS.updateList(H_SCORES,"Test",SCORE)
+    #Writes updated highscores to csv file
+    HS.writeToCSV(H_SCORES)
+
+    #Keep checking if back button pressed
+    while cont:
+        for event in pygame.event.get():
+            cont = button("back",275,440,100,30,BLUE,L_BLUE,mainMenu)
+            pygame.display.update()
+
         
 # Show instructions screen
 def instructions():
@@ -651,7 +681,6 @@ def instructions():
         h = 75
         for x in range(len(instr)):
             textSurf, textRect = makeTextObjs(instr[x], BASIC_FONT, TEXT_SHADOW_COLOR)
-            #textRect.center = ((320), (h))
             textRect.move_ip(10,h)
             h += 25
             DISPLAY_SURF.blit(textSurf, textRect)
@@ -660,8 +689,9 @@ def instructions():
         #Keep checking if back button pressed
         while cont:
             for event in pygame.event.get():
-                button("back",275,440,100,30,BLUE,L_BLUE,mainMenu)
+                cont = button("back",275,440,100,30,BLUE,L_BLUE,mainMenu)
                 pygame.display.update()
+
   
 # Display highscore page
 def highScore():
@@ -673,10 +703,10 @@ def highScore():
     MED_FONT = pygame.font.Font("freesansbold.ttf", 50)
     showTextScreen("High Score",MED_FONT,"top")
     # Read current highscores from csv file
-    hScores = HS.readFromCSV();
     h = 200
-    for x in range(len(hScores)):
-        text = hScores[x][0] + "  ....  " + str(hScores[x][1])
+    #H_SCORES = HS.readFromCSV()
+    for x in range(len(H_SCORES)):
+        text = H_SCORES[x][0] + "  ....  " + str(H_SCORES[x][1])
         textSurf, textRect = makeTextObjs(text, BASIC_FONT, TEXT_SHADOW_COLOR)
         textRect.center = ((320), (h))
         h += 25
@@ -686,8 +716,9 @@ def highScore():
     #Keep checking if back button pressed
     while cont:
         for event in pygame.event.get():
-            button("back",275,440,100,30,BLUE,L_BLUE,mainMenu)
+            cont = button("back",275,440,100,30,BLUE,L_BLUE,mainMenu)
             pygame.display.update()
+
 
 # Displays the main menu screen
 def mainMenu():
@@ -704,6 +735,7 @@ def mainMenu():
             button("High Score",450,375,100,30,RED, L_RED,highScore)
             pygame.display.update()
             clock.tick(15)
+
             
 # main method
 def main():
@@ -718,7 +750,7 @@ def main():
     BIG_FONT = pygame.font.Font("freesansbold.ttf", 100)
     # Sets the window title/name as "Tetris!"
     pygame.display.set_caption("Tetris!")
-
+    # Load highscores from csv
     mainMenu()
 
 

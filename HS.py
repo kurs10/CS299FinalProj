@@ -38,10 +38,11 @@ def updateList(Scores,name,newScore):
                 Scores[j],Scores[j+1] = Scores[j+1],Scores[j]
                 
     Scores = Scores[:5]
+    return Scores
 
 '''
-Scores = [] # new list
-readFromCSV()
+#EXAMPLE
+Scores = readFromCSV()
 updateList(Scores,"Test",100)
 writeToCSV(Scores)
 '''
