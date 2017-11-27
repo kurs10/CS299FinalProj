@@ -626,17 +626,17 @@ def start():
     pygame.mixer.music.play(-1, 0.0)
     runGame()
     pygame.mixer.music.stop()
-    
+
     # Display game over
     DISPLAY_SURF.fill(BG_COLOR)
     showTextScreen("Game Over!",BIG_FONT)
-    # Display socre
+    # Display score
     text = "Score:" + str(SCORE)
     MED_FONT = pygame.font.Font("freesansbold.ttf", 50)
     textSurf, textRect = makeTextObjs(text, MED_FONT, TEXT_SHADOW_COLOR)
     textRect.center = ((320), (350))
     DISPLAY_SURF.blit(textSurf, textRect)
-    
+
     #Updates Highscore list
     H_SCORES = HS.updateList(H_SCORES,"Test",SCORE)
     #Writes updated highscores to csv file
@@ -644,6 +644,7 @@ def start():
 
     #Keep checking if back button pressed
     while cont:
+        checkForQuit()
         for event in pygame.event.get():
             cont = button("back",275,440,100,30,BLUE,L_BLUE,mainMenu)
             pygame.display.update()
@@ -676,8 +677,9 @@ def instructions():
             DISPLAY_SURF.blit(textSurf, textRect)
         pygame.display.update()
 
-        #Keep checking if back button pressed
+        #Keep checking if back button pressed or if user quits
         while cont:
+            checkForQuit()
             for event in pygame.event.get():
                 cont = button("back",275,440,100,30,BLUE,L_BLUE,mainMenu)
                 pygame.display.update()
@@ -703,8 +705,9 @@ def highScore():
         DISPLAY_SURF.blit(textSurf, textRect)
     pygame.display.update()
 
-    #Keep checking if back button pressed
+    #Keep checking if back button pressed or if user quits
     while cont:
+        checkForQuit()
         for event in pygame.event.get():
             cont = button("back",275,440,100,30,BLUE,L_BLUE,mainMenu)
             pygame.display.update()
@@ -720,6 +723,7 @@ def mainMenu():
 
     while loop:
         for event in pygame.event.get():
+            checkForQuit()
             button("Start",100,375,100,30,GREEN,L_GREEN,start)
             button("Instructions",275,375,100,30,BLUE,L_BLUE,instructions)
             button("High Score",450,375,100,30,RED, L_RED,highScore)
